@@ -47,10 +47,9 @@ def can_build_design(target_design, available_pieces):
             # target's start *does match* the available piece
             if target_design.startswith(matching_piece):
                 new_sub_design = target_design.replace(matching_piece, "", 1)  # only the first occurence
-                remaining_pieces = [piece for piece in available_pieces if piece != matching_piece]  # need to make copy
                 
                 # resurse on sub-design
-                if can_build_design(new_sub_design, remaining_pieces):
+                if can_build_design(new_sub_design, available_pieces):
                     return True
                 # continue
     
