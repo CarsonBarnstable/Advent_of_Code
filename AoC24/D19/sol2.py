@@ -1,4 +1,10 @@
+from functools import cache
+
+import time
+
 def main():
+    
+    start_time = time.time()
     
     # get input
     towels = []
@@ -19,27 +25,29 @@ def main():
             design = line.strip('\n')
             designs.append(design)
     
+    towels = tuple(towel for towel in towels)
     # print(f"Towels:  {towels}\n\n")
     # print(f"Designs:  {designs}\n\n")
 
     valid_designs = 0
     total_variations = 0
-    known_patterns = {}
 
     for design in designs:
         if can_build_design(design, towels):
             valid_designs += 1
 
             # only count possible arrangements
-            total_variations += num_valid_designs(design, towels, known_patterns)
+            total_variations += num_valid_designs(design, towels)
         
     
-    # print(f"The total number of Valid Designs is: {valid_designs}")
-    # print()
+    print(f"The total number of Valid Designs is: {valid_designs}")
+    print()
     print(f"The total number of Possible Arrangements is: {total_variations}")
     print()
+    print(f"The Total Time Taken was: {time.time()-start_time} seconds")
     
 
+@cache
 def can_build_design(target_design, available_pieces):
     """
     Checks if a target design can be built from available pieces, using each piece at most once.
@@ -53,7 +61,7 @@ def can_build_design(target_design, available_pieces):
         for matching_piece in available_pieces:
             # target's start *does match* the available piece
             if target_design.startswith(matching_piece):
-                new_sub_design = target_design.replace(matching_piece, "", 1)  # only the first occurence
+                new_sub_design = target_design[len(matching_piece):]  # remove beginning match
                 
                 # resurse on sub-design
                 if can_build_design(new_sub_design, available_pieces):
@@ -64,15 +72,12 @@ def can_build_design(target_design, available_pieces):
         return False
 
 
-def num_valid_designs(target_design, available_pieces, memo):
+@cache
+def num_valid_designs(target_design, available_pieces):
     """
     Counts how many target designs can be built from available pieces, using each piece at most once.
     Uses recursion while matching starting sub-strings with available pieces
     """
-
-    # if we've seen the sub-design, we know how many arrangements it took last time
-    if memo and target_design in memo.keys():
-        return memo.get(target_design)
 
     # if fully reduced, have found one valid variation
     if len(target_design) == 0:
@@ -83,15 +88,11 @@ def num_valid_designs(target_design, available_pieces, memo):
         for matching_piece in available_pieces:
             # target's start *does match* the available piece
             if target_design.startswith(matching_piece):
-                new_sub_design = target_design.replace(matching_piece, "", 1)  # only the first occurence
+                new_sub_design = target_design[len(matching_piece):]  # remove beginning match
                 
                 # resurse on sub-design
-                valid_variations = num_valid_designs(new_sub_design, available_pieces, memo)
+                valid_variations = num_valid_designs(new_sub_design, available_pieces)
                 variation_counter += valid_variations
-
-                if new_sub_design not in memo.keys():
-                    memo[new_sub_design] = valid_variations
-                # continue
         
         # we have counted all the possible variations from the current state
         return variation_counter
